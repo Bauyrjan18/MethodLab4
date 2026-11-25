@@ -5,6 +5,7 @@
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{algorithmic}
 \usepackage{graphicx}
+\graphicspath{{../}{./}{figures/}{../figures/}}
 \usepackage{textcomp}
 \usepackage{xcolor}
 \usepackage{booktabs}
@@ -48,7 +49,7 @@ The explicit research contributions of this paper are:
     \item \textbf{Empirical Concurrency Scaling Analysis:} We provide a multi-tier concurrency benchmark ($1$ to $100$ clients) quantifying how HNSW-SQ8 reduces median latency by $14.7\times$ and restrains $99\text{th}$ percentile latency below $150$~ms under heavy saturation.
     \item \textbf{Operational Guardrail Formalization:} We formalize two production guardrail constraints---system error rate ($E_{\text{rate}} \le 1.0\%$) and latency SLA violation rate ($\text{SLA}_{\text{violation}} \le 5.0\%$ at $\tau_{\text{SLA}} = 200$~ms)---revealing that the Flat index experiences total operational collapse at $C \ge 20$.
     \item \textbf{Semantic Fidelity Preservation:} We prove that HNSW-SQ8 maintains a steady-state Recall@10 of $98.81\%$, preventing retrieval quality degradation in downstream prompt context.
-    \item \textbf{Instrumented Architecture & Reproducibility:} We present a C4 container architecture with five distinct telemetry collection probes ($\mathbf{M}_1$--$\mathbf{M}_5$), cold-start warm-up filtering, and $95\%$ bootstrap confidence interval estimation.
+    \item \textbf{Instrumented Architecture \& Reproducibility:} We present a C4 container architecture with five distinct telemetry collection probes ($\mathbf{M}_1$--$\mathbf{M}_5$), cold-start warm-up filtering, and $95\%$ bootstrap confidence interval estimation.
 \end{itemize}
 
 The remainder of this paper is organized as follows. Section~\ref{sec:methodology} formalizes the mathematical problem formulation, indexing algorithms, and C4 telemetry architecture. Section~\ref{sec:results} presents the experimental setup, summary benchmark table, graphical visualizations, and research question interpretations. Section~\ref{sec:limitations} addresses threats to validity. Section~\ref{sec:conclusion} concludes the paper with directions for future work.
@@ -102,7 +103,7 @@ To compress storage, 32-bit floating coordinates are mapped to 8-bit unsigned in
 \label{eq:sq8_quant}
 \end{equation}
 
-\subsection{RAG Generation Loss & Guardrail Constraints}
+\subsection{RAG Generation Loss \& Guardrail Constraints}
 In the complete RAG pipeline, the retrieved top-$k$ passages $\mathcal{D}_k = \{c_{(1)}, \dots, c_{(k)}\}$ are concatenated with query $x$ to assemble the augmented prompt $\mathbf{z} = [c_{(1)}; \dots; c_{(k)}; x]$. The autoregressive language generator $P_{\phi}$ synthesizes output sequence $y = (y_1, \dots, y_T)$ according to negative log-likelihood loss~\cite{lewis2020rag}:
 \begin{equation}
 \mathcal{L}_{\text{RAG}}(\phi; x, \mathcal{D}_k, y) = -\sum_{t=1}^T \log P_{\phi}\left(y_t \mid y_{<t}, \mathbf{z}\right)
@@ -120,7 +121,7 @@ E_{\text{rate}} = \frac{N_{\text{HTTP\_5xx}} + N_{\text{Timeout}} + N_{\text{Cir
 \end{equation}
 where $\tau_i$ is end-to-end latency and $\tau_{\text{SLA}} = 200$~ms is the interactive threshold.
 
-\subsection{C4 Architecture & Telemetry Instrumentation}
+\subsection{C4 Architecture \& Telemetry Instrumentation}
 The end-to-end architecture is depicted in Fig.~\ref{fig:architecture}. Telemetry collection is instrumented via five designated probes: $\mathbf{M}_1$ tracks round-trip latency and guardrail errors at the API Gateway; $\mathbf{M}_2$ captures query embedding latency; $\mathbf{M}_3$ measures core vector index search latency and Recall@10; $\mathbf{M}_4$ monitors neural reranker latency; and $\mathbf{M}_5$ records Time-to-First-Token (TTFT) at the LLM engine. System configuration parameters are summarized in Table~\ref{tab:parameters}.
 
 \begin{figure}[t]
@@ -207,7 +208,7 @@ Proposed (HNSW-SQ8) & 100 & $138.87 \pm 4.79$ & $138.44\ (135.51\text{--}141.84)
 \vspace{-2mm}
 \end{figure}
 
-\subsection{Performance Metric Analysis & Comparison}
+\subsection{Performance Metric Analysis \& Comparison}
 Table~\ref{tab:results_summary} presents steady-state performance metrics. Graphical evaluations are illustrated in Fig.~\ref{fig:latency_load} and Fig.~\ref{fig:distribution_boxplot}.
 
 Addressing \textbf{Research Question 1 (Latency Scaling)}, query latency for the Flat index accelerates superlinearly from $90.21$~ms ($C=1$) to $2040.28$~ms ($C=100$). In sharp contrast, HNSW-SQ8 exhibits stable logarithmic scaling, rising modestly from $57.03$~ms to $138.44$~ms. At peak saturation ($C=100$), HNSW-SQ8 provides a \textbf{$14.7\times$ speedup} in median latency. Shaded $95\%$ bootstrap confidence bands in Fig.~\ref{fig:latency_load} confirm that the performance distributions of the two architectures remain completely disjoint across all load levels.
